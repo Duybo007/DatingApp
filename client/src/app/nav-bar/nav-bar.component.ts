@@ -3,6 +3,8 @@ import { AccountService } from '../_services/account.service';
 import { BsDropdownConfig } from 'ngx-bootstrap/dropdown';
 import { Observable, of } from 'rxjs';
 import { User } from '../_models/user';
+import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-nav-bar',
@@ -14,7 +16,9 @@ export class NavBarComponent implements OnInit {
   public model: any = {}
 
  constructor(
-  public accountService: AccountService
+  public accountService: AccountService,
+  private router: Router,
+  private toastr: ToastrService
  ) {}
 
  ngOnInit(): void {
@@ -22,13 +26,13 @@ export class NavBarComponent implements OnInit {
 
   login(){
     this.accountService.login(this.model).subscribe({
-      next: res => {
-      },
-      error: error => console.log(error)
+      next: () => this.router.navigateByUrl("/members"),
+      error: error => this.toastr.error(error.error)
     })
   }
 
   logout(){
     this.accountService.logout()
+    this.router.navigateByUrl("/")
   }
 }
