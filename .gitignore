@@ -163,8 +163,8 @@ nCrunchTemp_*
 *.mm.*
 AutoTest.Net/
 
-# Web workbench (sass)
-.sass-cache/
+# Web workbench (scss)
+.scss-cache/
 
 # Installshield output folder
 [Ee]xpress/
