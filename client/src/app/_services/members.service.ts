@@ -19,6 +19,12 @@ export class MembersService {
     if( this.members.length > 0) return of(this.members)
     return this.http.get<Member[]>(this.baseUrl + "users").pipe(
       map(members =>{
+        members.forEach(member => {
+          const mainPhoto = member.photos.find(photo => photo.isMain)
+          if(mainPhoto){
+            member.photoUrl = mainPhoto?.url
+          }
+        })
         this.members = members
         return members;
       })
@@ -28,7 +34,15 @@ export class MembersService {
   getMember(username: string) {
     const member = this.members.find(x => x.userName === username);
     if(member) return of(member);
-    return this.http.get<Member>(this.baseUrl + "users/" + username)
+    return this.http.get<Member>(this.baseUrl + "users/" + username).pipe(
+      map(member => {
+        const mainPhoto = member.photos.find(photo => photo.isMain)
+        if(mainPhoto){
+          member.photoUrl = mainPhoto.url
+        }
+        return member
+      })
+    )
   }
 
   updateMember(member: Member) {
@@ -38,5 +52,13 @@ export class MembersService {
         this.members[index] = {...this.members[index], ...member}
       })
     )
+  }
+
+  setMainPhoto(photoId: number){
+    return this.http.put(this.baseUrl + "users/set-main-photo/" + photoId, {})
+  }
+
+  deletePhoto(photoId: number) {
+    return this.http.delete(this.baseUrl + "users/delete-photo/" + photoId)
   }
 }

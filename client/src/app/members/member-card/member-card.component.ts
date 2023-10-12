@@ -10,6 +10,5 @@ export class MemberCardComponent implements OnInit{
   @Input() member: Member | undefined;
 
   ngOnInit(): void {
-    
   }
 }

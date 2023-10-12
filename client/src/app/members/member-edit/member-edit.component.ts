@@ -24,7 +24,7 @@ export class MemberEditComponent implements OnInit {
   user: User | null = null;
 
   constructor(
-    private accountService: AccountService,
+    public accountService: AccountService,
     private memberService: MembersService,
     private toastr: ToastrService
   ) {
