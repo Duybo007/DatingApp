@@ -91,7 +91,7 @@ namespace API.Controllers
 
         [HttpPut("set-main-photo/{photoId}")]
         public async Task<ActionResult> SetMainPhoto(int photoId){
-            var user = await _userRepository.GetUserByUserameAsync(User.GetUsername());
+            var user = await _userRepository.GetUserByUserameAsync(User.GetUsername());            
 
             if (user == null) return NotFound();
 
@@ -104,7 +104,7 @@ namespace API.Controllers
             var currentMainPhoto = user.Photos.FirstOrDefault(x => x.IsMain);
             if ( currentMainPhoto != null) currentMainPhoto.IsMain = false;
             photo.IsMain = true;
-            
+
             if ( await _userRepository.SaveAllAsync()) return NoContent();
 
             return BadRequest("Problem setting the main photo");
