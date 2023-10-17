@@ -4,6 +4,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
+using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -31,9 +32,19 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+        public async Task<ActionResult<PagedList<MemberDto>>> GetUsers([FromQuery]UserParams userParams)    //[FromQuery] tells API where to look for these userParams
         {
-            var users = await _userRepository.GetMembersAsync();
+            var currentUser = await _userRepository.GetUserByUserameAsync(User.GetUsername());
+            userParams.CurrentUsername = currentUser.UserName;
+
+            if(string.IsNullOrEmpty(userParams.Gender)){
+                userParams.Gender = currentUser.Gender == "male"? "female" : "male";
+            }
+
+            var users = await _userRepository.GetMembersAsync(userParams);
+
+            Response.AddPaginationHeader(new PaginationHeader( users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages ));
+            // method is called to add a header to the HTTP response. This header contains information about the pagination of the users, such as the current page, page size, total count, and total pages.
 
             return Ok(users);
         }
