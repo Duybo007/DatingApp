@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Member } from '../_models/member';
 import { MembersService } from '../_services/members.service';
-import { Pagiantion } from '../_models/pagination';
+import { Pagination } from '../_models/pagination';
 
 @Component({
   selector: 'app-lists',
@@ -14,7 +14,7 @@ export class ListsComponent implements OnInit{
   predicate = "liked";
   pageNumber = 1;
   pageSize = 5;
-  pagination: Pagiantion | undefined;
+  pagination: Pagination | undefined;
 
   constructor(
     private memberService: MembersService
@@ -29,6 +29,9 @@ export class ListsComponent implements OnInit{
     this.memberService.getLikes(this.predicate, this.pageNumber, this.pageSize).subscribe({
       next: res => {
         this.members = res.result;
+        this.members?.map((m) => {
+          m.liked = true;
+        })
         this.pagination = res.pagination;
       }
     })

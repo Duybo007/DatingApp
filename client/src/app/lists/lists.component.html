@@ -1,6 +1,6 @@
 <div class="text-center mt-3">
     <h2>
-        {{predicate === "liked"? "members I like" : "Members like me"}}
+        {{predicate === "liked"? "Members I like" : "Members like me"}}
     </h2>
 </div>
 
@@ -11,14 +11,14 @@
                 btnRadio="liked"
                 [(ngModel)]="predicate"
                 (click)="loadLikes()"
-                class="btn btn-primary">
+                class="btn btn-outline-primary">
                 Members I like
             </button>
             <button 
                 btnRadio="likedBy"
                 [(ngModel)]="predicate"
                 (click)="loadLikes()"
-                class="btn btn-primary">
+                class="btn btn-outline-primary">
                 Members like me
             </button>
         </div>

@@ -1,4 +1,4 @@
-export interface Pagiantion {
+export interface Pagination {
     currentPage: number;
     itemsPerPage: number;
     totalItems: number;
@@ -9,5 +9,5 @@ export interface Pagiantion {
 
 export class PaginatedResult<T> {   //T: Members
     result?: T;
-    pagination?: Pagiantion;
+    pagination?: Pagination;
 }

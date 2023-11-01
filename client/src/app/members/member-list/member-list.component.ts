@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { Member } from 'src/app/_models/member';
-import { Pagiantion } from 'src/app/_models/pagination';
+import { Pagination } from 'src/app/_models/pagination';
 import { UserParams } from 'src/app/_models/userParams';
 import { MembersService } from 'src/app/_services/members.service';
 
@@ -13,7 +13,7 @@ import { MembersService } from 'src/app/_services/members.service';
 export class MemberListComponent implements OnInit {
   // members$: Observable<Member[]> | undefined;
   members: Member[] = [];
-  pagination: Pagiantion | undefined;
+  pagination: Pagination | undefined;
   userParams: UserParams | undefined;
   genderList =[{value: "male", displayValue: "Males"}, {value: "female", displayValue: "Females"}]
 
