@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { User } from '../_models/user';
 import { map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
   private http = inject(HttpClient); // Injecting HttpClient to perform HTTP requests
-  baseUrl = 'https://localhost:5001/api/'; // Base URL for the API endpoints
+  baseUrl = environment.apiUrl; // Base URL for the API endpoints
   currentUser = signal<User | null>(null); // Signal to store the current user and enable reactivity across components
 
   /**

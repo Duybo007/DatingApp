@@ -7,7 +7,7 @@ namespace API.Controllers;
 [Authorize]
 public class UsersController(IUserRepository userRepository) : BaseApiController
 {
-    [HttpGet]
+    [HttpGet]   //  /api/users
     public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
     {
         var users = await userRepository.GetMembersAsync();
