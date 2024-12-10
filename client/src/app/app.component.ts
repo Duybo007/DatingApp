@@ -12,18 +12,22 @@ import { HomeComponent } from "./home/home.component";
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  private accountService = inject(AccountService)
+  // Injecting the AccountService dependency to handle user authentication
+  private accountService = inject(AccountService);
   
+  // Angular lifecycle hook that runs after the component initializes
   ngOnInit(): void {
-    this.setCurrentUser() // check if user already login
+    this.setCurrentUser(); // Check and set the current user if they are already logged in
   }
 
-  setCurrentUser(){
-    const userString = localStorage.getItem('user')
-    if(!userString) return
-    const user = JSON.parse(userString)
-    this.accountService.currentUser.set(user)
+  /**
+   * Sets the current user in the AccountService based on data from localStorage.
+   * This ensures that the app recognizes a previously logged-in user when it initializes.
+   */
+  setCurrentUser() {
+    const userString = localStorage.getItem('user'); // Retrieve the user data from localStorage
+    if (!userString) return; // If no user data exists, exit the method
+    const user = JSON.parse(userString); // Parse the JSON string into an object
+    this.accountService.currentUser.set(user); // Update the current user in the AccountService
   }
-  
-  
 }

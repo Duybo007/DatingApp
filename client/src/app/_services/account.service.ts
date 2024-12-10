@@ -7,36 +7,51 @@ import { map } from 'rxjs';
   providedIn: 'root'
 })
 export class AccountService {
+  private http = inject(HttpClient); // Injecting HttpClient to perform HTTP requests
+  baseUrl = 'https://localhost:5001/api/'; // Base URL for the API endpoints
+  currentUser = signal<User | null>(null); // Signal to store the current user and enable reactivity across components
 
-  private http = inject(HttpClient);
-  baseUrl = 'https://localhost:5001/api/'
-  currentUser = signal<User | null>(null) // to keep user logging when page refresh
-
-  login(model: any){
+  /**
+   * Logs in a user by sending their credentials to the API.
+   * If successful, stores the user in localStorage and updates the currentUser signal.
+   * @param model - The user's login credentials (e.g., email and password).
+   * @returns An Observable that completes after user data is processed.
+   */
+  login(model: any) {
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
       map(user => {
-        if(user){
-          localStorage.setItem('user', JSON.stringify(user));
-          this.currentUser.set(user)
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user)); // Save user data in localStorage for session persistence
+          this.currentUser.set(user); // Update the currentUser signal
         }
-      }
-    ))
+      })
+    );
   }
 
-  logout(){
-    localStorage.removeItem('user')
-    this.currentUser.set(null)
+  /**
+   * Logs out the user by removing their data from localStorage
+   * and resetting the currentUser signal to null.
+   */
+  logout() {
+    localStorage.removeItem('user'); // Remove user data from localStorage
+    this.currentUser.set(null); // Reset the currentUser signal
   }
 
-  register(model: any){
+  /**
+   * Registers a new user by sending their details to the API.
+   * If successful, stores the user in localStorage and updates the currentUser signal.
+   * @param model - The user's registration details (e.g., name, email, password).
+   * @returns An Observable with the newly registered user data.
+   */
+  register(model: any) {
     return this.http.post<User>(this.baseUrl + 'account/register', model).pipe(
       map(user => {
-        if(user){
-          localStorage.setItem('user', JSON.stringify(user));
-          this.currentUser.set(user)
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user)); // Save user data in localStorage for session persistence
+          this.currentUser.set(user); // Update the currentUser signal
         }
-        return user
-      }
-    ))
+        return user; // Return the registered user data
+      })
+    );
   }
 }
