@@ -22,8 +22,7 @@ export class AccountService {
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
       map(user => {
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user)); // Save user data in localStorage for session persistence
-          this.currentUser.set(user); // Update the currentUser signal
+          this.setCurrentUser(user)
         }
       })
     );
@@ -48,11 +47,15 @@ export class AccountService {
     return this.http.post<User>(this.baseUrl + 'account/register', model).pipe(
       map(user => {
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user)); // Save user data in localStorage for session persistence
-          this.currentUser.set(user); // Update the currentUser signal
+          this.setCurrentUser(user)
         }
         return user; // Return the registered user data
       })
     );
+  }
+
+  setCurrentUser(user: User){
+    localStorage.setItem('user', JSON.stringify(user)); // Save user data in localStorage for session persistence
+    this.currentUser.set(user); // Update the currentUser signal
   }
 }

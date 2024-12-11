@@ -12,7 +12,7 @@
     </div>
     <div class="col-4">
         <div class="card">
-            <img src="{{member.photoUrl || './assets/user.png'}} " alt="{{member.knownAs}}"
+            <img src="{{member.photoUrl || 'user.png'}} " alt="{{member.knownAs}}"
                 class="card-img img-thumbnail">
             <div class="card-body">
                 <div>
@@ -33,12 +33,7 @@
                 </div>
             </div>
             <div class="card-footer">
-                <button 
-                    form="editForm" 
-                    [disabled]="!editForm.dirty"
-                    type="submit" 
-                    class="btn btn-success col-12"
-                >
+                <button form="editForm" [disabled]="!editForm.dirty" type="submit" class="btn btn-success col-12">
                     Save changes
                 </button>
             </div>
@@ -69,7 +64,10 @@
                 </form>
             </tab>
             <tab heading="Edit photos">
-                Photo edit will go here
+                <app-photo-editor 
+                    [member]="member" 
+                    (memberChange)="onMemberChange($event)"
+                ></app-photo-editor>
             </tab>
         </tabset>
     </div>

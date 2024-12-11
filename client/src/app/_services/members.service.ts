@@ -3,6 +3,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment'; // Environment-specific configurations, such as API URL.
 import { Member } from '../_models/member'; // Member model to define the shape of member data.
 import { of, tap } from 'rxjs'; // RxJS utilities for working with streams.
+import { Photo } from '../_models/photo';
 
 @Injectable({
   providedIn: 'root' // This service will be available globally without needing to import it in individual modules.
@@ -40,5 +41,33 @@ export class MembersService {
         );
       })
     );
+  }
+
+  // Set a photo to be main photo and also update the local `members` signal
+  setMainPhoto(photo: Photo) {
+    return this.http.put(`${this.baseUrl}users/set-main-photo/${photo.id}`, {}).pipe(
+      tap(() => {
+        // After a successful API update, update the corresponding member in the `members` signal.
+        this.members.update(members => members.map(m=>{
+          if(m.photos.includes(photo)){ // member that has `photo` in `photos`
+            m.photoUrl = photo.url  // update current photoUrl with photo.url
+          }
+          return m
+        }))
+      })
+    )
+  }
+
+  deletePhoto(photo: Photo){
+    return this.http.delete(`${this.baseUrl}users/delete-photo/${photo.id}`, {}).pipe(
+      tap(() => {
+        this.members.update(members => members.map(m => {
+          if(m.photos.includes(photo)){
+            m.photos = m.photos.filter(p => p.id !== photo.id) // remove photo from photos
+          }
+          return m
+        }))
+      })
+    )
   }
 }
