@@ -80,6 +80,8 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
             PublicId = result.PublicId // Stores the Cloudinary public ID for the photo
         };
 
+        if (user.Photos.Count == 0) photo.IsMain = true;
+
         // Adds the new photo to the user's photo collection
         user.Photos.Add(photo);
 

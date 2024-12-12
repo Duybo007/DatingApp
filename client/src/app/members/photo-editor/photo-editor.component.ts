@@ -54,6 +54,22 @@ export class PhotoEditorComponent implements OnInit {
       updatedMember.photos.push(photo)
       this.memberChange.emit(updatedMember)
       // update member.photos to display newly added photo
+      if(photo.isMain){
+        const user = this.accountService.currentUser();
+        if(user){
+          // update user state with new photoUrl so photo in nav can be updated
+          user.photoUrl = photo.url;
+          this.accountService.setCurrentUser(user)
+        }
+        updatedMember.photoUrl = photo.url
+        updatedMember.photos.forEach(p=> {
+          if(p.isMain) p.isMain = false;
+          if(p.id === photo.id) p.isMain = true
+        });
+
+        this.memberChange.emit(updatedMember)
+        // update member.photos to display new Main photo
+      }
     }
   }
 
