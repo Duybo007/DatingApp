@@ -1,73 +1,112 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment'; // Environment-specific configurations, such as API URL.
 import { Member } from '../_models/member'; // Member model to define the shape of member data.
 import { of, tap } from 'rxjs'; // RxJS utilities for working with streams.
 import { Photo } from '../_models/photo';
+import { PaginatedResult } from '../_models/pagination';
+import { UserParams } from '../_models/userParams';
+import { AccountService } from './account.service';
 
 @Injectable({
   providedIn: 'root' // This service will be available globally without needing to import it in individual modules.
 })
 export class MembersService {
   private http = inject(HttpClient); // Injecting HttpClient to perform HTTP requests.
+  private accountService = inject(AccountService); // Injecting AccountService to access user authentication data.
 
-  members = signal<Member[]>([]); // Signal to store and manage the list of members in a reactive way.
+  // members = signal<Member[]>([]); // Signal to store and manage the list of members in a reactive way.
+  paginatedResult = signal<PaginatedResult<Member[]> | null>(null); // Signal to store and manage pagination results in a reactive way.
   baseUrl = environment.apiUrl; // Base URL for API endpoints, fetched from environment configuration.
+  memberCache = new Map();
+  userParams = signal<UserParams>(new UserParams(this.accountService.currentUser()))
 
   // Fetch all members from the API and store them in the `members` signal.
   getMembers() {
-    return this.http.get<Member[]>(`${this.baseUrl}users`).subscribe({
-      next: (members) => this.members.set(members) // Update the `members` signal with the fetched data.
+    const response = this.memberCache.get(Object.values(this.userParams()).join('-'))
+
+    if(response) return this.setPaginatedResponse(response);
+
+    let params = new HttpParams();
+
+    if(this.userParams().pageNumber && this.userParams().pageSize){
+      params = params.append('pageNumber', this.userParams().pageNumber);
+      params = params.append('pageSize', this.userParams().pageSize);
+    }
+
+    params = params.append('minAge', this.userParams().minAge);
+    params = params.append('maxAge', this.userParams().maxAge);
+    params = params.append('gender', this.userParams().gender);
+    params = params.append('orderBy', this.userParams().orderBy);
+
+    return this.http.get<Member[]>(`${this.baseUrl}users`, {observe: 'response', params}).subscribe({
+      next: response =>{
+        this.setPaginatedResponse(response);
+        this.memberCache.set(Object.values(this.userParams()).join('-'), response)
+      }
     });
   }
 
+  private setPaginatedResponse(response: HttpResponse<Member[]>){
+    this.paginatedResult.set({
+      items: response.body as Member[],
+      pagination: JSON.parse(response.headers.get('Pagination')!)
+    })
+  }
+
+  resetUserParams(){
+    this.userParams.set(new UserParams(this.accountService.currentUser()))
+  }
+
+
   // Fetch a specific member by username.
   getMember(username: string) {
-    // Check if the member is already in the `members` signal.
-    const member = this.members().find(x => x.username === username);
-    if (member !== undefined) return of(member); // If found, return it as an Observable using `of()`.
+    const member: Member = [...this.memberCache.values()]
+      .reduce((arr, elem) => arr.concat(elem.body), [])
+      .find( (m: Member) => m.username === username);
 
-    // If not found in the local `members`, make an API call to fetch the member.
+    if(member) return of(member);
+    
     return this.http.get<Member>(`${this.baseUrl}users/${username}`);
   }
 
   // Update member details in the backend and also update the local `members` signal.
   updateMember(member: Member) {
     return this.http.put(`${this.baseUrl}users`, member).pipe(
-      tap(() => {
-        // After a successful API update, update the corresponding member in the `members` signal.
-        this.members.update(members =>
-          members.map(m => m.username === member.username ? member : m) // Replace the matching member with the updated one.
-        );
-      })
+      // tap(() => {
+      //   // After a successful API update, update the corresponding member in the `members` signal.
+      //   this.members.update(members =>
+      //     members.map(m => m.username === member.username ? member : m) // Replace the matching member with the updated one.
+      //   );
+      // })
     );
   }
 
   // Set a photo to be main photo and also update the local `members` signal
   setMainPhoto(photo: Photo) {
     return this.http.put(`${this.baseUrl}users/set-main-photo/${photo.id}`, {}).pipe(
-      tap(() => {
-        // After a successful API update, update the corresponding member in the `members` signal.
-        this.members.update(members => members.map(m=>{
-          if(m.photos.includes(photo)){ // member that has `photo` in `photos`
-            m.photoUrl = photo.url  // update current photoUrl with photo.url
-          }
-          return m
-        }))
-      })
+      // tap(() => {
+      //   // After a successful API update, update the corresponding member in the `members` signal.
+      //   this.members.update(members => members.map(m=>{
+      //     if(m.photos.includes(photo)){ // member that has `photo` in `photos`
+      //       m.photoUrl = photo.url  // update current photoUrl with photo.url
+      //     }
+      //     return m
+      //   }))
+      // })
     )
   }
 
   deletePhoto(photo: Photo){
     return this.http.delete(`${this.baseUrl}users/delete-photo/${photo.id}`, {}).pipe(
-      tap(() => {
-        this.members.update(members => members.map(m => {
-          if(m.photos.includes(photo)){
-            m.photos = m.photos.filter(p => p.id !== photo.id) // remove photo from photos
-          }
-          return m
-        }))
-      })
+      // tap(() => {
+      //   this.members.update(members => members.map(m => {
+      //     if(m.photos.includes(photo)){
+      //       m.photos = m.photos.filter(p => p.id !== photo.id) // remove photo from photos
+      //     }
+      //     return m
+      //   }))
+      // })
     )
   }
 }

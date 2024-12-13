@@ -1,6 +1,7 @@
 using API.DTOs; // Importing Data Transfer Objects for User and Photo-related operations
 using API.Entities; // Importing the AppUser and Photo entities
 using API.Extensions; // For the User.GetUsername() extension method
+using API.Helpers;
 using API.Interfaces; // Importing repository and service interfaces
 using AutoMapper; // For mapping between entities and DTOs
 using Microsoft.AspNetCore.Authorization; // For [Authorize] attribute
@@ -14,10 +15,15 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
 {
     // GET: /api/users
     [HttpGet] // Defines an HTTP GET endpoint
-    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery]UserParams userParams)  // specifies that the response body should only contain the IEnumerable<MemberDto> portion of the users object
+    // This is why, even though the users object contains metadata like CurrentPage, TotalPages, etc., only the items (list of MemberDto) are included in the response body.
+    //  the return type (IEnumerable<MemberDto>) dictates what gets serialized.
     {
+        userParams.CurrentUsername = User.GetUsername();    // add username to userParams
         // Calls the repository to retrieve all users as MemberDto objects
-        var users = await userRepository.GetMembersAsync();
+        var users = await userRepository.GetMembersAsync(userParams);
+
+        Response.AddPaginationHeader(users);    // Adds Metadata to HTTP Headers
 
         // Returns the list of users with a 200 OK response
         return Ok(users);

@@ -25,7 +25,8 @@ namespace API.Services
             // Defines the claims to include in the token; here, it includes the user's username
             var claims = new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, user.UserName) // Claim: User's unique identifier
+                new(ClaimTypes.NameIdentifier, user.Id.ToString()), // Claim: User's unique identifier
+                new(ClaimTypes.Name, user.UserName),
             };
 
             // Creates signing credentials using the token key and HMAC-SHA512 algorithm

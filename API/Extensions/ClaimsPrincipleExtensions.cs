@@ -8,12 +8,22 @@ namespace API.Extensions
         // Retrieves the username from the claims of the current user (typically from a JWT token)
         public static string GetUsername(this ClaimsPrincipal user)
         {
-            // Extracts the value of the NameIdentifier claim from the user's token
-            var username = user.FindFirstValue(ClaimTypes.NameIdentifier)
+            // Extracts the value of the Name claim from the user's token
+            var username = user.FindFirstValue(ClaimTypes.Name)
                 ?? throw new Exception("Cannot get username from token");
 
             // Returns the username if found, otherwise throws an exception
             return username;
+        }
+
+        public static int GetUserId(this ClaimsPrincipal user)
+        {
+            // Extracts the value of the NameIdentifier claim from the user's token
+            var userId = int.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? throw new Exception("Cannot get username from token"));
+
+            // Returns the userId if found, otherwise throws an exception
+            return userId;
         }
     }
 }
