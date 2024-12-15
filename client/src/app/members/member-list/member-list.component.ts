@@ -3,8 +3,6 @@ import { ButtonsModule } from 'ngx-bootstrap/buttons';
 import { MembersService } from '../../_services/members.service';
 import { MemberCardComponent } from "../member-card/member-card.component";
 import { PaginationModule } from 'ngx-bootstrap/pagination';
-import { AccountService } from '../../_services/account.service';
-import { UserParams } from '../../_models/userParams';
 import { FormsModule } from '@angular/forms';
 
 @Component({

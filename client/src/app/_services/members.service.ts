@@ -7,6 +7,7 @@ import { Photo } from '../_models/photo';
 import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
 import { AccountService } from './account.service';
+import { setPaginatedResponse, setPaginationHeaders } from './PaginationHelper';
 
 @Injectable({
   providedIn: 'root' // This service will be available globally without needing to import it in individual modules.
@@ -21,18 +22,13 @@ export class MembersService {
   memberCache = new Map();
   userParams = signal<UserParams>(new UserParams(this.accountService.currentUser()))
 
-  // Fetch all members from the API and store them in the `members` signal.
+  // Fetch all members from the API and store them in the `memberCache` signal.
   getMembers() {
     const response = this.memberCache.get(Object.values(this.userParams()).join('-'))
 
-    if(response) return this.setPaginatedResponse(response);
+    if(response) return setPaginatedResponse(response, this.paginatedResult);
 
-    let params = new HttpParams();
-
-    if(this.userParams().pageNumber && this.userParams().pageSize){
-      params = params.append('pageNumber', this.userParams().pageNumber);
-      params = params.append('pageSize', this.userParams().pageSize);
-    }
+    let params = setPaginationHeaders(this.userParams().pageNumber, this.userParams().pageSize)
 
     params = params.append('minAge', this.userParams().minAge);
     params = params.append('maxAge', this.userParams().maxAge);
@@ -41,17 +37,10 @@ export class MembersService {
 
     return this.http.get<Member[]>(`${this.baseUrl}users`, {observe: 'response', params}).subscribe({
       next: response =>{
-        this.setPaginatedResponse(response);
+        setPaginatedResponse(response, this.paginatedResult);
         this.memberCache.set(Object.values(this.userParams()).join('-'), response)
       }
     });
-  }
-
-  private setPaginatedResponse(response: HttpResponse<Member[]>){
-    this.paginatedResult.set({
-      items: response.body as Member[],
-      pagination: JSON.parse(response.headers.get('Pagination')!)
-    })
   }
 
   resetUserParams(){
