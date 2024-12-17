@@ -3,15 +3,16 @@ using System.Security.Claims; // Enables creating and handling user claims
 using System.Text; // Provides methods for encoding strings
 using API.Entities; // Reference to the AppUser entity
 using API.Interfaces; // Reference to the ITokenService interface
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens; // Provides classes for signing and validating tokens
 
 namespace API.Services
 {
     // TokenService is responsible for generating JSON Web Tokens (JWTs) for user authentication
-    public class TokenService(IConfiguration config) : ITokenService
+    public class TokenService(IConfiguration config, UserManager<AppUser> userManager) : ITokenService
     {
         // CreateToken generates a JWT token for the specified user
-        public string CreateToken(AppUser user)
+        public async Task<string> CreateToken(AppUser user)
         {
             // Retrieves the token key from app settings
             var tokenKey = config["TokenKey"] ?? throw new Exception("Cannot access token key from app settings");
@@ -22,12 +23,18 @@ namespace API.Services
             // Encodes the token key into a symmetric security key
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
 
+            if(user.UserName == null) throw new Exception("No username for user");
+
             // Defines the claims to include in the token; here, it includes the user's username
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()), // Claim: User's unique identifier
                 new(ClaimTypes.Name, user.UserName),
             };
+
+            var roles = await userManager.GetRolesAsync(user);
+
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             // Creates signing credentials using the token key and HMAC-SHA512 algorithm
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

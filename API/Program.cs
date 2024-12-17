@@ -1,6 +1,8 @@
 using API.Data; // For database context and data-related operations
+using API.Entities;
 using API.Extensions; // For custom extension methods to simplify configuration
 using API.MiddleWare; // For custom middleware (e.g., exception handling)
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore; // For database operations like migrations
 
 var builder = WebApplication.CreateBuilder(args); // Creates a builder to configure the application
@@ -42,8 +44,10 @@ var services = scope.ServiceProvider; // Gets the service provider for dependenc
 try
 {
     var context = services.GetRequiredService<DataContext>(); // Resolves the database context
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await context.Database.MigrateAsync(); // Applies any pending migrations to the database
-    await Seed.SeedUsers(context); // Seeds initial user data into the database
+    await Seed.SeedUsers(userManager, roleManager); // Seeds initial user data into the database
 }
 catch (Exception ex)
 {
