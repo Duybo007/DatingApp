@@ -4,11 +4,13 @@ import { User } from '../_models/user';
 import { map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LikesService } from './likes.service';
+import { PresenseService } from './presense.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
+  private presenseService = inject(PresenseService)
   private http = inject(HttpClient); // Injecting HttpClient to perform HTTP requests
   private likesService = inject(LikesService)
 
@@ -46,6 +48,7 @@ export class AccountService {
   logout() {
     localStorage.removeItem('user'); // Remove user data from localStorage
     this.currentUser.set(null); // Reset the currentUser signal
+    this.presenseService.stopHubConnection()
   }
 
   /**
@@ -69,5 +72,6 @@ export class AccountService {
     localStorage.setItem('user', JSON.stringify(user)); // Save user data in localStorage for session persistence
     this.currentUser.set(user); // Update the currentUser signal
     this.likesService.getLikeIds()
+    this.presenseService.createHubConnection(user)
   }
 }

@@ -2,6 +2,7 @@ using API.Data; // For database context and data-related operations
 using API.Entities;
 using API.Extensions; // For custom extension methods to simplify configuration
 using API.MiddleWare; // For custom middleware (e.g., exception handling)
+using API.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore; // For database operations like migrations
 
@@ -26,7 +27,8 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(x => 
     x.AllowAnyHeader() // Allows all headers
      .AllowAnyMethod() // Allows all HTTP methods (GET, POST, etc.)
-     .WithOrigins("http://localhost:4200", "https://localhost:4200")); // Allows requests from Angular app
+     .WithOrigins("http://localhost:4200", "https://localhost:4200")    // Allows requests from Angular app
+     .AllowCredentials()); 
 
 // Adds authentication middleware to verify user identity. Verifies user identity based on tokens or cookies.
 app.UseAuthentication();
@@ -36,6 +38,8 @@ app.UseAuthorization();
 
 // Maps controller routes, enabling the API endpoints
 app.MapControllers();
+app.MapHub<PresenceHub>("hubs/presense"); // Map SignalR hub
+app.MapHub<MessageHub>("hubs/message"); // Map SignalR hub
 
 // Create a scope for resolving scoped services
 using var scope = app.Services.CreateScope();
@@ -47,6 +51,7 @@ try
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
     await context.Database.MigrateAsync(); // Applies any pending migrations to the database
+    await context.Database.ExecuteSqlRawAsync("DELETE FROM [connections]");
     await Seed.SeedUsers(userManager, roleManager); // Seeds initial user data into the database
 }
 catch (Exception ex)
