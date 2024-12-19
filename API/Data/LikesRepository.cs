@@ -83,11 +83,5 @@ namespace API.Data
 
             return await PagedList<MemberDto>.CreateAsync(query, likesParams.PageNumber, likesParams.PageSize);
         }
-
-        // Saves changes to the database and returns true if successful.
-        public async Task<bool> SaveChanges()
-        {
-            return await context.SaveChangesAsync() > 0; // Returns true if one or more database rows were updated.
-        }
     }
 }

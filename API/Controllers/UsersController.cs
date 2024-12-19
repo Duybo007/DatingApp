@@ -11,7 +11,7 @@ namespace API.Controllers;
 
 // This controller handles user-related API requests, such as retrieving, updating users, and managing photos
 [Authorize] // Ensures all endpoints require authentication
-public class UsersController(IUserRepository userRepository, IMapper mapper, IPhotoService photoService) : BaseApiController
+public class UsersController(IUnitOfWork unitOfWork , IMapper mapper, IPhotoService photoService) : BaseApiController
 {
     // GET: /api/users
     [HttpGet] // Defines an HTTP GET endpoint
@@ -21,7 +21,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
     {
         userParams.CurrentUsername = User.GetUsername();    // add username to userParams
         // Calls the repository to retrieve all users as MemberDto objects
-        var users = await userRepository.GetMembersAsync(userParams);
+        var users = await unitOfWork.UserRepository.GetMembersAsync(userParams);
 
         Response.AddPaginationHeader(users);    // Adds Metadata to HTTP Headers
 
@@ -34,7 +34,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
     public async Task<ActionResult<MemberDto>> GetUser(string username)
     {
         // Retrieves a single user by their username from the repository
-        var user = await userRepository.GetMemberAsync(username);
+        var user = await unitOfWork.UserRepository.GetMemberAsync(username);
 
         // Returns a 404 Not Found response if the user does not exist
         if (user == null) return NotFound();
@@ -48,7 +48,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
     public async Task<ActionResult> UpdateUser(MemberUpdateDto memberUpdateDto)
     {
         // Retrieves the currently authenticated user using the User.GetUsername() extension
-        var user = await userRepository.GetUserByNameAsync(User.GetUsername());
+        var user = await unitOfWork.UserRepository.GetUserByNameAsync(User.GetUsername());
 
         // If the user is not found, return a 400 Bad Request response
         if (user == null) return BadRequest("Could not find user");
@@ -57,7 +57,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
         mapper.Map(memberUpdateDto, user);
 
         // Saves the changes to the database, and if successful, returns a 204 No Content response
-        if (await userRepository.SaveAllSync()) return NoContent();
+        if (await unitOfWork.Complete()) return NoContent();
 
         // If saving changes fails, return a 400 Bad Request response
         return BadRequest("Failed to update the user");
@@ -68,7 +68,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
     public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
     {
         // Retrieves the currently authenticated user using the User.GetUsername() extension
-        var user = await userRepository.GetUserByNameAsync(User.GetUsername());
+        var user = await unitOfWork.UserRepository.GetUserByNameAsync(User.GetUsername());
 
         // If the user is not found, return a 400 Bad Request response
         if (user == null) return BadRequest("Cannot find user");
@@ -102,7 +102,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
         // This is done to adhere to RESTful standards, which recommend returning a 201 Created status 
         // with a "Location" header pointing to the newly created resource, 
         // even though in this case the resource being pointed to is the user profile rather than the photo itself.
-        if (await userRepository.SaveAllSync())
+        if (await unitOfWork.Complete())
             return CreatedAtAction(nameof(GetUser), new { username = user.UserName }, mapper.Map<PhotoDto>(photo));
 
         // If saving changes fails, return a 400 Bad Request response
@@ -113,7 +113,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
     public async Task<ActionResult> SetmainPhoto(int photoId)
     {
         // Retrieves the currently authenticated user using the User.GetUsername() extension
-        var user = await userRepository.GetUserByNameAsync(User.GetUsername());
+        var user = await unitOfWork.UserRepository.GetUserByNameAsync(User.GetUsername());
 
         // If the user is not found, return a 400 Bad Request response
         if (user == null) return BadRequest("Cannot find user");
@@ -126,7 +126,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
         if (currentMainPhoto != null) currentMainPhoto.IsMain = false;
         photo.IsMain = true;
 
-        if (await userRepository.SaveAllSync()) return NoContent();
+        if (await unitOfWork.Complete()) return NoContent();
 
         return BadRequest("Problem setting main photo");
     }
@@ -135,7 +135,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
     public async Task<ActionResult> DeletePhoto(int photoId)
     {
         // Retrieves the currently authenticated user using the User.GetUsername() extension
-        var user = await userRepository.GetUserByNameAsync(User.GetUsername());
+        var user = await unitOfWork.UserRepository.GetUserByNameAsync(User.GetUsername());
 
         // If the user is not found, return a 400 Bad Request response
         if (user == null) return BadRequest("Cannot find user");
@@ -152,7 +152,7 @@ public class UsersController(IUserRepository userRepository, IMapper mapper, IPh
 
         user.Photos.Remove(photo);
 
-        if (await userRepository.SaveAllSync()) return Ok();
+        if (await unitOfWork.Complete()) return Ok();
 
         return BadRequest("Problem deleting photo");
     }

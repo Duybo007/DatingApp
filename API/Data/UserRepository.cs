@@ -65,13 +65,6 @@ namespace API.Data
             return await context.Users.Include(x => x.Photos).ToListAsync();
         }
 
-        // Save changes made to the database
-        public async Task<bool> SaveAllSync()
-        {
-            // Saves any pending changes and checks if at least one record was affected
-            return await context.SaveChangesAsync() > 0;
-        }
-
         // Update an existing user entity
         public void Update(AppUser user)
         {
